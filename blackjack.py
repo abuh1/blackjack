@@ -1,7 +1,7 @@
 from itertools import repeat
 import random
 
-# Rules
+# Rules of blackjack
 rules = """Here are the rules:
 The dealer will deal two cards to each player, including the dealer himself. You will be able to see both
 your cards but you will not be able to see one of the dealers cards.
@@ -23,24 +23,32 @@ for i in range(2,11):
     unique_cards.insert(i-1, str(i))
     
 def main():
+    print("TYPE CTRL+C IF YOU WAN'T TO STOP THE PROGRAM AT ANY TIME\n" + "-" * 105)
+    cash = 1000
+    # Asks user if they want to read the rules
     while True:
         print("Welcome to Blackjack! Do you want to read the rules? (y/n)")
-        rules_ans = input()
+        rules_ans = input(">").lower()
         if rules_ans != 'y' and rules_ans != 'n':
-            print("Please type 'y' or 'n'")
+            print("Please type 'y' or 'n'\n")
         else:
             break
     if rules_ans == 'y':
         print('-' * 105)
         print(rules)
         print('-' * 105)
-    deck = Deck()
-    dealer_hand, player_hand = [], []
-    # Initial deal
-    deck.deal(player_hand, dealer_hand)
+    # Round loop
+    while True:
+        print("Your Balance:", cash)
+        bet = place_bet(cash=cash)
     
-    
-
+        deck = Deck()
+        dealer_hand, player_hand = [], []
+        # Initial deal - 2 cards each
+        deck.deal(player_hand, dealer_hand)
+        dealer_hidden = [dealer_hand[0], "?"]
+        round(player_hand, dealer_hand, dealer_hidden, cash)
+                
 class Deck():
     def __init__(self):
         self.deck = []
@@ -67,7 +75,29 @@ class Deck():
             for p in args:
                 self.draw(p)
             count += 1
-                
+
+# Function to place bets
+def place_bet(cash):
+    while True:
+        print("Please place your bet: (2.00 to 500.0)")
+        bet = input(">")
+        try:
+            bet = int(bet)
+            if bet > cash:
+                print(f"You do not have enough money. Your current balance is: {cash}\n")
+            elif bet < 2 or bet > 500:
+                print("You must enter a value between 2 and 500.\n")
+            else:
+                break
+        except ValueError:
+            print("Please enter an integer.\n")
+            
+# This will loop per round. Takes player, dealer, and hidden dealer hands and cash.
+def round(player, dealer, dealer_h, cash):
+    print("-" * 105)
+    print(f"DEALER HAND: {dealer_h}\n\n")
+    print(f"YOUR HAND: {player}\n")
+    print("-" * 105)
         
 if __name__ == '__main__':
     main()
