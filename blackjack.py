@@ -10,8 +10,10 @@ for i in range(2,11):
 # Points for each card in a dict
 points = {k:k for k in unique_cards}
 # Change A, J, Q, K value in dict. A will be 11 unless total is over 21, then it will change to 1.
-points['A'] = '11'
-points['J'], points['Q'], points['K'] = '10', '10', '10'
+points['A'] = 11
+for n in range(2,11):
+    points[str(n)] = n
+points['J'], points['Q'], points['K'] = 10, 10, 10
 
 # Rules of blackjack
 rules = """Here are the rules:
@@ -64,6 +66,7 @@ class Deck():
                 self.draw(p)
             count += 1
 
+# Main loop
 def main():
     global balance
     print("TYPE CTRL+C IF YOU WAN'T TO STOP THE PROGRAM AT ANY TIME\n" + "-" * 105)
@@ -79,32 +82,37 @@ def main():
         print('-' * 105)
         print(rules)
         print('-' * 105)
-    # Round loop
+    # Game loop, end when player stops or loses all money
+    while balance > 0:
+        round()
+        
+# One full round
+def round():
+    global balance
+    print("Your Balance:", balance)
+    bet = place_bet(balance)
+    balance -= bet
+    # Creates deck and shuffles it
+    deck = Deck()
+    deck.shuffle_burn()
+    
+    dealer_hand, player_hand = [], []
+    # Initial deal - 2 cards each
+    deck.deal(player_hand, dealer_hand)
+    dealer_hidden = [dealer_hand[0], "?"]
+    dealer_hand[0] = 'A'
+    dealer_hand[1] = '10'
+    p_score = sum(points[n] for n in player_hand)
+    d_score = sum(points[n] for n in dealer_hand)
+    
+    print("-" * 105)
+    print(f"DEALER HAND: {dealer_hidden}\n\n")
+    print(f"YOUR HAND: {player_hand}\n")
+    print("-" * 105)
+    
+    naturals(p_score, d_score, bet)
     while True:
-        print("Your Balance:", balance)
-        bet = place_bet(balance)
-        balance -= bet
-        # Creates deck and shuffles it
-        deck = Deck()
-        deck.shuffle_burn()
-        
-        dealer_hand, player_hand = [], []
-        # Initial deal - 2 cards each
-        deck.deal(player_hand, dealer_hand)
-        dealer_hidden = [dealer_hand[0], "?"]
-        
-        print("-" * 105)
-        print(f"DEALER HAND: {dealer_hidden}\n\n")
-        print(f"YOUR HAND: {player_hand}\n")
-        print("-" * 105)
-        
-        naturals(player_hand, dealer_hand, bet)
-        round(deck, player_hand, dealer_hand, bet)
-        
-# Rest of the round after checking naturals
-def round(deck, player, dealer, bet):
-    while True:
-        move = input("Type 1 to hit, or 2 to stand.")
+        move = input("Type 1 to hit, or 2 to stand.\n")
         try:
             move = int(move)
             if move != 1 and move != 2:
@@ -113,16 +121,18 @@ def round(deck, player, dealer, bet):
                 break
         except ValueError:
             print("Error: Type 1 or 2")
+    if move == 1:
+        deck.draw(player_hand)
         
 # Checks if player or dealer have blackjack
-def naturals(player, dealer, bet):
+def naturals(player_points, dealer_points, bet):
     global balance
     dealer_bj = False
     player_bj = False
     
-    if int(points[player[0]]) + int(points[player[1]]) == 21:
+    if player_points == 21:
         player_bj = True
-    if int(points[dealer[0]]) + int(points[dealer[1]]) == 21:
+    if dealer_points == 21:
         dealer_bj = True
     if player_bj and dealer_bj:
         print("The dealer and the player both have blackjack! Returning bets...")
