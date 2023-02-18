@@ -82,35 +82,51 @@ def main():
         print('-' * 105)
         print(rules)
         print('-' * 105)
-    # Game loop, end when player stops or loses all money
+    
+    # Game loop, ends when player stops or loses all money
     while balance > 0:
         round()
-        
+            
 # One full round
 def round():
     global balance
-    print("Your Balance:", balance)
-    bet = place_bet(balance)
-    balance -= bet
-    # Creates deck and shuffles it
-    deck = Deck()
-    deck.shuffle_burn()
-    
-    dealer_hand, player_hand = [], []
-    # Initial deal - 2 cards each
-    deck.deal(player_hand, dealer_hand)
-    dealer_hidden = [dealer_hand[0], "?"]
-    dealer_hand[0] = 'A'
-    dealer_hand[1] = '10'
-    p_score = sum(points[n] for n in player_hand)
-    d_score = sum(points[n] for n in dealer_hand)
-    
-    print("-" * 105)
-    print(f"DEALER HAND: {dealer_hidden}\n\n")
-    print(f"YOUR HAND: {player_hand}\n")
-    print("-" * 105)
-    
-    naturals(p_score, d_score, bet)
+    start = True
+    while start:
+        print("Your Balance:", balance)
+        bet = place_bet(balance)
+        balance -= bet
+        # Creates deck and shuffles it
+        deck = Deck()
+        deck.shuffle_burn()
+        
+        dealer_hand, player_hand = [], []
+        # Initial deal - 2 cards each
+        deck.deal(player_hand, dealer_hand)
+        dealer_hidden = [dealer_hand[0], "?"]
+        # Total points for current hands
+        p_score = sum(points[n] for n in player_hand)
+        d_score = sum(points[n] for n in dealer_hand)
+        
+        print("-" * 105)
+        print(f"\nDEALER HAND: {dealer_hidden}\n\n")
+        print(f"YOUR HAND: {player_hand}\n")
+        print("-" * 105)
+        # Check naturals
+        if p_score == 21 and d_score == 21:
+            print("\n>The dealer and the player both have blackjack! Returning bets...")
+            print("-" * 105)
+            balance += bet
+        elif p_score == 21 and d_score != 21:
+            print("\nThe player has a blackjack! 1.5x return...")
+            print("-" * 105)
+            balance += 1.5*bet
+        elif d_score == 21 and p_score != 21:
+            print("\nThe dealer had a blackjack! Sorry, you lose this round...")
+            print(f"\nDealer's hand was: {dealer_hand}\n")
+            print("-" * 105)
+        else:
+            start = False
+    # Hit or stand
     while True:
         move = input("Type 1 to hit, or 2 to stand.\n")
         try:
@@ -121,31 +137,30 @@ def round():
                 break
         except ValueError:
             print("Error: Type 1 or 2")
-    if move == 1:
-        deck.draw(player_hand)
-        
-# Checks if player or dealer have blackjack
-def naturals(player_points, dealer_points, bet):
-    global balance
-    dealer_bj = False
-    player_bj = False
     
-    if player_points == 21:
-        player_bj = True
-    if dealer_points == 21:
-        dealer_bj = True
-    if player_bj and dealer_bj:
-        print("The dealer and the player both have blackjack! Returning bets...")
-        print("-" * 105)
-        balance += bet
-    elif player_bj and not dealer_bj:
-        print("The player has a blackjack! 1.5x return...")
-        print("-" * 105)
-        balance += 1.5*bet
-    elif dealer_bj and not player_bj:
-        print("The dealer has a blackjack! Sorry, you lose this round...")
-        print("-" * 105)
-          
+            
+        
+
+# Recursive function to keep hitting as long as user does not go bust, returns new hand
+def hit(hand, score, deck):
+    top_card = deck.deck[-1]
+    score += points[top_card]
+    deck.draw(hand)
+    print("\nACTION: HIT\n")
+    print(f"NEW HAND: {hand}\n")
+    print("-" * 105)
+    if score > 21:
+        return hand, score
+    elif score == 21:
+        return hand, score
+    else:
+        again = int(input("Hit again? (1 for yes, 2 for no)\n"))
+        if again == 1:
+            hand, score = hit(hand, score, deck)
+        elif again == 2:
+            return hand, score
+    return hand, score
+        
 # Function to place bets
 def place_bet(balance):
     while True:
