@@ -138,8 +138,6 @@ def round():
         except ValueError:
             print("Error: Type 1 or 2")
     
-            
-        
 
 # Recursive function to keep hitting as long as user does not go bust, returns new hand
 def hit(hand, score, deck):

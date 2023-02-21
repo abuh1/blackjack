@@ -1,2 +1,0 @@
-if hit or stand
-figure
